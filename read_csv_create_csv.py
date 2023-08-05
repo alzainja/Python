@@ -3,37 +3,42 @@
 
 # Author: Jaffar Alzain <alzainja>
 
-import pandas
+import pandas as pd
+import os
 
-fname = input('Enter a csv file name(e.g. Example.csv):')
+def file_exists(file_name):
+    return os.path.isfile(file_name)
 
-try:
-    open(fname)
-except Exception:
-    print('File cannot be found:', fname,
-          '\nPython program and csv file must be in the same folder')
-    exit()
+def get_available_columns(dataframe):
+    return list(dataframe.columns)
 
-csv_data = pandas.read_csv(fname, skip_blank_lines=True)
-available_columns = list(csv_data.columns)
-print('Here is a list of available columns:', available_columns)
+def main():
+    file_name = input('Enter a csv file name(e.g. Example.csv): ')
 
-columns = input('Enter comma seperated column names(case sensitive):')
+    if not file_exists(file_name):
+        print('File cannot be found:', file_name,
+              '\nPython program and csv file must be in the same folder')
+        exit()
 
-try:
-    column_list = columns.split(',')
-    column_list = [x.strip(' ') for x in column_list]
-    csv_data[column_list].isin(available_columns)
-    new_list = []
-    for n in column_list:
-        new_list.append(n)
-except Exception:
-    print('Some of the entered columns are not in the available columns list\n'
-          'or you did not enter comma seperated column names(case sensitive)')
-    exit()
+    csv_data = pd.read_csv(file_name, skip_blank_lines=True)
+    available_columns = get_available_columns(csv_data)
+    print('Here is a list of available columns:', available_columns)
 
-output = pandas.DataFrame(csv_data, columns=new_list)
-output.to_csv('new_'+fname, index=False)
-print('New file titled new_'+fname, 'has been created')
+    columns = input('Enter comma separated column names (case sensitive): ')
 
-input('Press Enter to exit')
+    column_list = [col.strip() for col in columns.split(',')]
+
+    if not all(col in available_columns for col in column_list):
+        print('Some of the entered columns are not in the available columns list\n'
+              'or you did not enter comma separated column names (case sensitive)')
+        exit()
+
+    output = pd.DataFrame(csv_data, columns=column_list)
+    new_file_name = os.path.join('new_' + file_name)
+    output.to_csv(new_file_name, index=False)
+    print('New file titled', new_file_name, 'has been created')
+
+    input('Press Enter to exit')
+
+if __name__ == "__main__":
+    main()
